@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'JX_AFNetworking_Example' do
+  pod 'JX_AFNetworking', :path => '../'
+
+  target 'JX_AFNetworking_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

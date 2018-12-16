@@ -22,7 +22,7 @@ class MyRequest: JXBaseRequest {
     override func baseUrl() -> String? {
         return "https://appc.guangjiego.com/v1"
     }
-    override func customConstruct() ->constructingBlock?  {
+    override func customConstruct() ->ConstructingBlock?  {
         return nil
     }
     

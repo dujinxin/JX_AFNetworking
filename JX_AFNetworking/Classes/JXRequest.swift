@@ -14,15 +14,7 @@ import UIKit
 
 class JXRequest: JXBaseRequest {
     
-    var construct : constructingBlock? {
-        set{
-            self.construct = newValue
-        }
-        get{
-            return nil
-        }
-    }
-    override func customConstruct() ->constructingBlock?  {
+    override func customConstruct() ->ConstructingBlock?  {
         return nil
     }
     

@@ -35,23 +35,54 @@ open class JXBaseRequest: NSObject{
     var sessionTask : URLSessionTask?
     //func constructingBlock< T : AFMultipartFormData >(formData : [T]) -> T
     
-    public typealias constructingBlock = ((_ formData : AFMultipartFormData) -> Void)?
-    public typealias successCompletion = ((_ data:Any?, _ message:String) -> ())
-    public typealias failureCompletion = ((_ message:String,_ code:JXNetworkError) -> ())
+    public typealias ConstructingBlock = ((_ formData : AFMultipartFormData) -> Void)?
+    public typealias SuccessCompletion = ((_ data: Any?, _ message: String) -> ())
+    public typealias FailureCompletion = ((_ message: String, _ code: JXNetworkError) -> ())
     
-    public var success : successCompletion?
-    public var failure : failureCompletion?
+    public typealias DownloadCompletion = ((_ response: URLResponse, _ url: URL?, _ error: Error?) -> ())
+    public typealias Destination = ((_ url: URL, _ urlResponse: URLResponse) -> (URL))
+    public typealias DownloadProgress = ((_ progress: Progress) -> ())
+    
+    
+    public var success : SuccessCompletion?
+    public var failure : FailureCompletion?
+    
+    public var download : DownloadCompletion?
+    public var destination : Destination?
+    public var progress : DownloadProgress?
     
     ///开始请求
     public func startRequest() {
+        //
         JXNetworkManager.manager.buildRequest(self)
     }
     ///停止请求
     public func stopRequest() {
+        //
         JXNetworkManager.manager.cancelRequest(self)
     }
     
+    var urlRequest : URLRequest?
     
+    public func startDownload() {
+        JXNetworkManager.manager.download(self)
+    }
+    public func stopDownload() {
+        JXNetworkManager.manager.download(self)
+    }
+    public func pauseDownload() {
+        JXNetworkManager.manager.download(self)
+    }
+    public func resumeDownload() {
+        
+    }
+    
+    public class func download(urlStr: String, destination: @escaping Destination,progress:@escaping DownloadProgress, download: @escaping DownloadCompletion) {
+        
+        let request = self.init(tag: 0, url: urlStr, method: .post, param: nil, success: nil, failure: nil, progress: progress, download: download, destination: destination)
+        
+        request.startDownload()
+    }
 
     /// 网络请求
     ///
@@ -62,9 +93,9 @@ open class JXBaseRequest: NSObject{
     ///   - param: 请求参数
     ///   - success: 成功回调
     ///   - failure: 失败回调
-    public class func request(tag:Int = 0, method:JXRequestMethod = .post, url:String, param:Dictionary<String, Any>?,success:@escaping successCompletion,failure:@escaping failureCompletion) {
+    public class func request(tag: Int = 0, method: JXRequestMethod = .post, url: String, param: Dictionary<String, Any>?, success: @escaping SuccessCompletion, failure: @escaping FailureCompletion) {
         
-        let request = self.init(tag: tag, url: url, param: param, success: success, failure: failure)
+        let request = self.init(tag: tag, url: url, method: method, param: param, success: success, failure: failure, progress: nil, download: nil, destination: nil)
         
         request.startRequest()
     }
@@ -73,21 +104,25 @@ open class JXBaseRequest: NSObject{
         super.init()
     }
     
-    required public init(tag:Int, url:String, param:Dictionary<String, Any>?, success:@escaping successCompletion, failure:@escaping failureCompletion) {
+    required public init(tag: Int = 0, url: String, method: JXRequestMethod = .post, param: Dictionary<String, Any>?, success: SuccessCompletion?, failure: FailureCompletion?, progress: DownloadProgress?, download: DownloadCompletion?, destination: Destination?) {
         
         self.tag = tag
         self.requestUrl = url
+        self.method = method
         self.param = param
-        
         self.success = success
         self.failure = failure
+        //下载
+        self.download = download
+        self.progress = progress
+        self.destination = destination
         
         super.init()
     }
 
     //子类需重写实现
     open func baseUrl() -> String? {return nil}
-    open func customConstruct() -> constructingBlock?  {return nil}
+    open func customConstruct() -> ConstructingBlock?  {return nil}
     open func buildCustomUrlRequest() -> URLRequest?  {return nil}
     open func requestSuccess(responseData: Any) {}
     open func requestFailure(error: Error) {}

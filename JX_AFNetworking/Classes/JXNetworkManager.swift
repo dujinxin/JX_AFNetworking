@@ -25,7 +25,7 @@ public class JXNetworkManager: NSObject {
         super.init()
         //返回数据格式AFHTTPResponseSerializer(http) AFJSONResponseSerializer(json) AFXMLDocumentResponseSerializer ...
         afmanager.responseSerializer = AFHTTPResponseSerializer.init()
-        afmanager.responseSerializer.acceptableContentTypes = NSSet(objects: "text/html","application/json","text/json") as? Set<String>
+        afmanager.responseSerializer.acceptableContentTypes = NSSet(objects: "text/html","application/json","text/json","image/jpeg") as? Set<String>
         
         afmanager.operationQueue.maxConcurrentOperationCount = 5
         //请求参数格式AFHTTPRequestSerializer（http） AFJSONRequestSerializer(json) AFPropertyListRequestSerializer (plist)
@@ -114,12 +114,28 @@ public class JXNetworkManager: NSObject {
                 break
             }
         }
-        
-        
-        
         addRequest(request: request)
     }
-    
+    func download(_ request: JXBaseRequest) {
+        guard let urlStr = request.requestUrl, let url = URL(string: urlStr)  else {
+            fatalError("Bad UrlStr")
+        }
+        let urlRequest = URLRequest.init(url: url)
+        request.urlRequest = urlRequest
+        
+        guard let destination = request.destination else {
+            fatalError("destination block can not be nil")
+        }
+        request.sessionTask = afmanager.downloadTask(with: urlRequest, progress: request.progress, destination: destination, completionHandler: request.download)
+        //        request.sessionTask = afmanager.downloadTask(with: urlRequest, progress: { (progress) in
+        //            print(progress.totalUnitCount,progress.completedUnitCount)
+        //        }, destination: destination) { (urlResponse, url, error) in
+        //            print(urlResponse,url,error)
+        //        }
+        request.sessionTask?.resume()
+        addRequest(request: request)
+        
+    }
 }
 //MARK: request add remove resume cancel
 extension JXNetworkManager {
